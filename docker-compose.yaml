@@ -9,6 +9,8 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - redis
+      - auth1
+      - jaeger
     env_file:
       - ./movies-service/.env
 
@@ -16,6 +18,8 @@ services:
     image: myapi:latest
     depends_on:
       - redis
+      - auth2
+      - jaeger
     env_file:
       - ./movies-service/.env
 

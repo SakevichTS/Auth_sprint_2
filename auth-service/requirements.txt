@@ -13,3 +13,7 @@ passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
 python-jose[cryptography]==3.3.0
 typer
+opentelemetry-api==1.17.0
+opentelemetry-sdk==1.17.0
+opentelemetry-instrumentation-fastapi==0.38b0
+opentelemetry-exporter-jaeger==1.17.0

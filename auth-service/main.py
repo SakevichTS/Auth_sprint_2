@@ -1,10 +1,13 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse, JSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
 from contextlib import asynccontextmanager
 
 from src.api.v1 import auth, roles
 from src.core.config import settings
+from src.core.jaeger import configure_tracer, jaeger_settings
+from src.core.ratelimit import check_login_ratelimit, bump_login_fail_counter, reset_login_counters
 from src.db import redis
 
 from pydantic import ValidationError
@@ -33,6 +36,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
+@app.middleware("http")
+async def login_ratelimit_middleware(request: Request, call_next):
+    # Простейший вариант: проверяем только путь /auth/login
+    if request.url.path == "/auth/login" and request.method == "POST":
+        form = await request.form()
+        login = form.get("username")  # или используем "email", если у тебя так
+        ip = request.client.host
+        # Проверяем лимит
+        await check_login_ratelimit(ip, login)
+
+    response = await call_next(request)
+    return response
+
+
 # Обработчик  ошибок Pydantic
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
@@ -44,3 +62,8 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(roles.router, prefix="/roles", tags=["roles"])
+
+if jaeger_settings.debug:
+    configure_tracer()
+    FastAPIInstrumentor.instrument_app(app)
+

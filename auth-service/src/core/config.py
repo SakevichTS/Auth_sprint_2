@@ -63,6 +63,23 @@ class AppSettings(BaseSettings):
     ratelimit: RateLimitSettings = Field(default_factory=RateLimitSettings)
     al: AlchemySettings = Field(default_factory=AlchemySettings)
 
+
+class JaegerSettings(BaseSettings):
+    """Настройки Jaeger."""
+
+    host_name: str
+    port: int
+    service_name_auth: str
+    endpoint: str
+    debug: bool = False
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="JAEGER_")
+
+    @property
+    def dsn(self) -> str:
+        return f"http://{self.host_name}:{self.port}/{self.endpoint}"
+
+
 try:
     settings = AppSettings()
 except Exception as e:

@@ -7,6 +7,7 @@ from src.api.deps import get_auth_service
 from src.models.schemas.user import UserCreate, UserOut, UserChangeLoginIn, UserChangePasswordIn
 from src.models.schemas.auth import LoginIn, TokenPair, RefreshIn
 from src.core.jwt_verify import current_user_claims
+from src.core.ratelimit import check_login_ratelimit, bump_login_fail_counter, reset_login_counters
 from src.domain.services.auth_service import AuthService
 from src.models.schemas.audit import LoginHistoryPage
 
@@ -30,7 +31,7 @@ async def register(
         "/login", 
         response_model=TokenPair,
         description="Авторизация пользователя. "
-                "Возвращает пару токенов (доступа и обновления)."
+                    "Возвращает пару токенов (доступа и обновления)."
 )
 async def login(
     payload: LoginIn,
@@ -38,7 +39,20 @@ async def login(
     db: AsyncSession = Depends(get_async_session),
     service: AuthService = Depends(get_auth_service),
 ):
-    return await service.login(db, payload, request)
+    ip = request.client.host
+    login = payload.username
+
+    # проверяем лимит
+    await check_login_ratelimit(ip, login)
+    try:
+        tokens = await service.login(db, payload, request)
+    except Exception:
+        await bump_login_fail_counter(ip, login)
+        raise
+
+    # если успешный вход — сбрасываем счетчики
+    await reset_login_counters(ip, login)
+    return tokens
 
 @router.post(
         "/refresh", 
