@@ -1,11 +1,13 @@
 version: '3'
+
 services:
+  # ---------- MOVIES SERVICE ----------
   api1:
     image: myapi:latest
     build:
       context: ./movies-service/src
       dockerfile: Dockerfile
-    depends_on: 
+    depends_on:
       - redis
     env_file:
       - ./movies-service/.env
@@ -17,38 +19,17 @@ services:
     env_file:
       - ./movies-service/.env
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - "8000:80"
-    volumes:
-      - ./movies-service/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./movies-service/configs/nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - api1
-      - api2
-
   theatre-db:
     image: postgres:13.0-alpine
     volumes:
-      - pg_data:/var/lib/postgresql/data/
-      - ./etl/schemas/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+      - pg_data_movies:/var/lib/postgresql/data/
+      - ./db/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
     expose:
       - "5432"
     env_file:
       - ./etl/.env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:6.2-alpine
-    expose:
-      - "6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -81,7 +62,7 @@ services:
       elasticsearch:
         condition: service_healthy
     command: ["sh", "-c", "tr -d '\\r' </app/init-es.sh | sh"]
-    
+
   etl-filmwork:
     build:
       context: ./etl
@@ -130,10 +111,79 @@ services:
     environment:
       PIPELINE: person
 
+  # ---------- AUTH SERVICE ----------
+  auth1:
+    image: myauth:latest
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    env_file:
+      - ./auth-service/.env
+
+  auth2:
+    image: myauth:latest
+    depends_on:
+      - redis
+    env_file:
+      - ./auth-service/.env
+
+  auth-db:
+    image: postgres:13.0-alpine
+    volumes:
+      - pg_data_auth:/var/lib/postgresql/data/
+      - ./db/database_dump_auth.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    env_file:
+      - ./auth-service/.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2-alpine
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api1
+      - api2
+      - auth1
+      - auth2
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "14268:14268"  # прием трассировок
+      - "16686:16686"  # веб-интерфейс
+    networks:
+      - app-net
+
 volumes:
-  pg_data:
+  pg_data_movies:
+  pg_data_auth:
   es_data:
 
 networks:
   default:
-    name: app-net 
+    name: app-net

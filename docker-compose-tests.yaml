@@ -2,7 +2,7 @@ version: '3'
 services:
   tests:
     build:
-      context: ./movies-service/tests
+      context: ./tests
       dockerfile: Dockerfile
     entrypoint: >
       sh -c "pip install -r /tests/functional/requirements.txt
