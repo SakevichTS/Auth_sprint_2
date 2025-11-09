@@ -1,0 +1,15 @@
+fastapi==0.111.0
+redis==5.0.4
+pydantic-settings==2.10.1
+pydantic==2.11.7
+gunicorn==23.0.0
+uvicorn==0.29.0
+uvicorn-worker==0.3.0
+sqlalchemy==2.0.32
+alembic==1.13.2
+psycopg==3.2.1
+asyncpg==0.30.0
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+python-jose[cryptography]==3.3.0
+typer

@@ -1,0 +1,16 @@
+version: '3'
+services:
+  tests:
+    build:
+      context: ./movies-service/tests
+      dockerfile: Dockerfile
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
+
+networks:
+  default:
+    external: true
+    name: app-net
