@@ -22,7 +22,7 @@ class AuthServiceClient:
 
     async def verify_token(self, token: str):
         """Проверка токена через эндпойнт /auth/verify."""
-        headers = {"Authorization": token}
+        headers = {"Authorization": f"Bearer {token}"}
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(f"{self.base_url}/auth/verify", headers=headers)

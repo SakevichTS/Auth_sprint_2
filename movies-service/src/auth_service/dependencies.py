@@ -1,12 +1,15 @@
-from fastapi import Depends, Request, HTTPException, status
+from fastapi import Security, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from auth_service.http_client import AuthServiceClient
 
 auth_client = AuthServiceClient()
+auth_scheme = HTTPBearer()
 
 
-async def get_current_user(request: Request):
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(auth_scheme)):
     """Проверяет токен и возвращает данные пользователя из auth-service."""
-    token = request.headers.get("Authorization")
+    token = credentials.credentials
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

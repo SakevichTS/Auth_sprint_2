@@ -33,6 +33,7 @@ class AbstractCache(ABC):
     async def delete(self, key: str) -> None:
         ...
 
+
 class AbstractDataStorage(ABC):
     @abstractmethod
     async def get_by_id(self, film_id: UUID | str) -> Optional[Dict[str, Any]]:
@@ -50,6 +51,7 @@ class AbstractDataStorage(ABC):
     ) -> Sequence[Dict[str, Any]]:
         ...
 
+
 class ElasticDataStorage(AbstractDataStorage):
     def __init__(self, es: AsyncElasticsearch):
         self._es = es
@@ -61,7 +63,7 @@ class ElasticDataStorage(AbstractDataStorage):
         except NotFoundError:
             return None
         return doc["_source"]
-    
+
     async def list_films(
         self, sort: Optional[str], page_number: int, page_size: int, genre: Optional[str] = None
     ) -> Sequence[Dict[str, Any]]:
@@ -82,12 +84,7 @@ class ElasticDataStorage(AbstractDataStorage):
         if not genre_id:
             return {"match_all": {}}
         return {
-            "nested": {
-                "path": "genre",
-                "query": {
-                    "term": {"genre.id": genre_id}
-                }
-            }
+            "term": {"genre.id": genre_id}
         }
 
     def _es_sort_from_query(self, sort: Optional[str]) -> list[Dict[str, Any]]:
@@ -96,7 +93,7 @@ class ElasticDataStorage(AbstractDataStorage):
         field = sort.lstrip("-")
         order = "desc" if sort.startswith("-") else "asc"
         return [{field: {"order": order, "unmapped_type": "keyword"}}]
-    
+
     async def search(
         self, query: str, page_number: int, page_size: int,
     ) -> Sequence[Dict[str, Any]]:
@@ -116,6 +113,7 @@ class ElasticDataStorage(AbstractDataStorage):
             size=page_size,
         )
         return [hit["_source"] for hit in resp["hits"]["hits"]]
+
 
 class RedisCache(AbstractCache):
     def __init__(self, client: Redis):

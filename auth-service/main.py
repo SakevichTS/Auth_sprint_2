@@ -37,19 +37,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
-@app.middleware("http")
-async def login_ratelimit_middleware(request: Request, call_next):
-    # Простейший вариант: проверяем только путь /auth/login
-    if request.url.path == "/auth/login" and request.method == "POST":
-        form = await request.form()
-        login = form.get("username")
-        ip = request.client.host
-        # Проверяем лимит
-        await check_login_ratelimit(ip, login)
-
-    response = await call_next(request)
-    return response
+#
+# @app.middleware("http")
+# async def login_ratelimit_middleware(request: Request, call_next):
+#     if request.url.path == "/auth/login" and request.method == "POST":
+#         form = await request.form()
+#         login = form.get("login")
+#         ip = request.client.host
+#         await check_login_ratelimit(ip, login)
+#
+#     response = await call_next(request)
+#     return response
 
 
 # Обработчик  ошибок Pydantic
@@ -64,7 +62,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(roles.router, prefix="/roles", tags=["roles"])
 
-# if jaeger_settings.debug:
-#     configure_tracer()
-#     FastAPIInstrumentor.instrument_app(app)
+if jaeger_settings.debug:
+    configure_tracer()
+    FastAPIInstrumentor.instrument_app(app)
 

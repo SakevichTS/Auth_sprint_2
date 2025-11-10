@@ -1,5 +1,6 @@
 from __future__ import annotations
 from fastapi import APIRouter, Depends, status, Request, Response, Query
+from fastapi.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.postgres import get_async_session
@@ -31,10 +32,9 @@ async def register(
 
 
 @router.post(
-        "/login", 
-        response_model=TokenPair,
-        description="Авторизация пользователя. "
-                    "Возвращает пару токенов (доступа и обновления)."
+    "/login",
+    response_model=TokenPair,
+    description="Авторизация пользователя. Возвращает пару токенов (доступа и обновления)."
 )
 async def login(
     payload: LoginIn,
@@ -47,11 +47,15 @@ async def login(
 
     # проверяем лимит
     await check_login_ratelimit(ip, login)
+
     try:
         tokens = await service.login(db, payload, request)
-    except Exception:
+    except Exception as e:
+        import traceback
+        print("⚠️ Ошибка при логине:", e)
+        traceback.print_exc()
         await bump_login_fail_counter(ip, login)
-        raise
+        raise HTTPException(status_code=500, detail=str(e))
 
     # если успешный вход — сбрасываем счетчики
     await reset_login_counters(ip, login)

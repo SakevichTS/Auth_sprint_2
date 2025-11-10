@@ -2,6 +2,7 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Security
 
 from services.film import FilmService, get_film_service
 from models.film import FilmDetail, FilmsQuery, FilmsListResponse, SearchQuery
@@ -11,6 +12,8 @@ from auth_service.http_client import UserPayload
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
+
+# auth_scheme = HTTPBearer()
 
 
 @router.get(
@@ -23,7 +26,7 @@ router = APIRouter()
 async def search_films(
     params: SearchQuery = Depends(),
     film_service: FilmService = Depends(get_film_service),
-    user: UserPayload = Depends(get_current_user),
+    user: UserPayload = Security(get_current_user),
 ) -> FilmsListResponse:
     return await film_service.search(params)
 
@@ -36,7 +39,7 @@ async def search_films(
 async def film_details(
     film_id: UUID,
     film_service: FilmService = Depends(get_film_service),
-    user: UserPayload = Depends(get_current_user),
+    user: UserPayload = Security(get_current_user),
 ) -> FilmDetail:
     film = await film_service.get_by_id(film_id)
     if not film:
@@ -52,13 +55,13 @@ async def film_details(
 async def film_genre(
     params: FilmsQuery = Depends(),
     film_service: FilmService = Depends(get_film_service),
-    user: UserPayload = Depends(get_current_user),
+    user: UserPayload = Security(get_current_user),
 ) -> FilmsListResponse:
     try:
         films = await film_service.list_films(params)
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            detail="failed to fetch films",
+            detail=f"failed to fetch films, {e}",
         )
     return films

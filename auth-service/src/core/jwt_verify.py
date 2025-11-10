@@ -6,6 +6,7 @@ from src.core.config import settings
 
 bearer = HTTPBearer(auto_error=True)
 
+
 async def current_user_claims(
     cred: HTTPAuthorizationCredentials = Depends(bearer),
 ) -> dict:
@@ -29,6 +30,7 @@ async def current_user_claims(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": "token_invalid", "message": "Invalid token"},
         )
+
 
 def require_roles(*needed: str):
     def dep(claims: dict = Depends(current_user_claims)):

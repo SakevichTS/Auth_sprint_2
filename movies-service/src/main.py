@@ -51,6 +51,6 @@ app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 app.include_router(persons.router, prefix='/api/v1/persons', tags=['person'])
 app.include_router(genres.router, prefix='/api/v1/genres', tags=['genre'])
 
-# if jaeger_settings.debug:
-#     configure_tracer()
-#     FastAPIInstrumentor.instrument_app(app)
+if jaeger_settings.debug:
+    configure_tracer()
+    FastAPIInstrumentor.instrument_app(app)

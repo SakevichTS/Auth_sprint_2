@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    networks:
+      - app-net
     depends_on:
       - redis
       - auth1
@@ -16,6 +18,8 @@ services:
 
   api2:
     image: myapi:latest
+    networks:
+      - app-net
     depends_on:
       - redis
       - auth2
@@ -30,6 +34,8 @@ services:
       - ./db/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
     expose:
       - "5432"
+    networks:
+      - app-net
     env_file:
       - ./etl/.env
     healthcheck:
@@ -46,6 +52,8 @@ services:
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
+    networks:
+      - app-net
     volumes:
       - es_data:/usr/share/elasticsearch/data
     healthcheck:
@@ -62,6 +70,8 @@ services:
       - ./etl/schemas/es_person.json:/app/schemas/es_person.json
       - ./etl/schemas/es_movies.json:/app/schemas/es_movies.json
       - ./etl/init-es.sh:/app/init-es.sh:ro
+    networks:
+      - app-net
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -71,6 +81,8 @@ services:
     build:
       context: ./etl
     restart: on-failure
+    networks:
+      - app-net
     depends_on:
       theatre-db:
         condition: service_healthy
@@ -87,6 +99,8 @@ services:
     build:
       context: ./etl
     restart: on-failure
+    networks:
+      - app-net
     depends_on:
       theatre-db:
         condition: service_healthy
@@ -103,6 +117,8 @@ services:
     build:
       context: ./etl
     restart: on-failure
+    networks:
+      - app-net
     depends_on:
       theatre-db:
         condition: service_healthy
@@ -163,6 +179,8 @@ services:
     image: redis:6.2-alpine
     expose:
       - "6379"
+    networks:
+      - app-net
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -177,6 +195,8 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - app-net
     depends_on:
       - api1
       - api2
