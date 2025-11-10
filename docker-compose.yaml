@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   # ---------- MOVIES SERVICE ----------
   api1:
@@ -7,6 +5,8 @@ services:
     build:
       context: ./movies-service/src
       dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     depends_on:
       - redis
       - auth1
@@ -121,13 +121,20 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    networks:
+      - app-net
     depends_on:
       - redis
+      - auth-db
     env_file:
       - ./auth-service/.env
 
   auth2:
     image: myauth:latest
+    networks:
+      - app-net
     depends_on:
       - redis
     env_file:
@@ -141,7 +148,9 @@ services:
     expose:
       - "5433"
     ports:
-      - "5433:5433"
+      - "5433:5432"
+    networks:
+      - app-net
     env_file:
       - ./auth-service/.env
     healthcheck:
@@ -176,7 +185,6 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:latest
-    container_name: jaeger
     ports:
       - "14268:14268"  # прием трассировок
       - "16686:16686"  # веб-интерфейс
@@ -190,4 +198,7 @@ volumes:
 
 networks:
   default:
+    external: true
     name: app-net
+  app-net:
+    driver: bridge

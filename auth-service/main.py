@@ -7,10 +7,11 @@ from contextlib import asynccontextmanager
 from src.api.v1 import auth, roles
 from src.core.config import settings
 from src.core.jaeger import configure_tracer, jaeger_settings
-from src.core.ratelimit import check_login_ratelimit, bump_login_fail_counter, reset_login_counters
+from src.core.ratelimit import check_login_ratelimit
 from src.db import redis
 
 from pydantic import ValidationError
+
 
 # новый подход запуска и завершения , 
 # код до yeild выполняется для старта, 
@@ -42,7 +43,7 @@ async def login_ratelimit_middleware(request: Request, call_next):
     # Простейший вариант: проверяем только путь /auth/login
     if request.url.path == "/auth/login" and request.method == "POST":
         form = await request.form()
-        login = form.get("username")  # или используем "email", если у тебя так
+        login = form.get("username")
         ip = request.client.host
         # Проверяем лимит
         await check_login_ratelimit(ip, login)
@@ -63,7 +64,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(roles.router, prefix="/roles", tags=["roles"])
 
-if jaeger_settings.debug:
-    configure_tracer()
-    FastAPIInstrumentor.instrument_app(app)
+# if jaeger_settings.debug:
+#     configure_tracer()
+#     FastAPIInstrumentor.instrument_app(app)
 

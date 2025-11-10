@@ -11,7 +11,9 @@ from src.core.ratelimit import check_login_ratelimit, bump_login_fail_counter, r
 from src.domain.services.auth_service import AuthService
 from src.models.schemas.audit import LoginHistoryPage
 
+
 router = APIRouter()
+
 
 @router.post(
         "/register", 
@@ -27,6 +29,7 @@ async def register(
 ):
     return await service.register(db, payload)
 
+
 @router.post(
         "/login", 
         response_model=TokenPair,
@@ -40,7 +43,7 @@ async def login(
     service: AuthService = Depends(get_auth_service),
 ):
     ip = request.client.host
-    login = payload.username
+    login = payload.login
 
     # проверяем лимит
     await check_login_ratelimit(ip, login)
@@ -53,6 +56,7 @@ async def login(
     # если успешный вход — сбрасываем счетчики
     await reset_login_counters(ip, login)
     return tokens
+
 
 @router.post(
         "/refresh", 
@@ -67,6 +71,7 @@ async def refresh(
     service: AuthService = Depends(get_auth_service),
 ):
     return await service.refresh(db, payload, request)
+
 
 @router.post(
         "/logout", 
@@ -84,6 +89,7 @@ async def logout(
     await service.logout(db, payload, request)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+
 @router.post(
         "/change-login", 
         status_code=status.HTTP_200_OK,
@@ -98,6 +104,7 @@ async def change_login(
 ):
     user_id = claims["sub"]
     return await service.change_login(db, user_id, payload)
+
 
 @router.post(
         "/change-password", 
@@ -114,6 +121,7 @@ async def change_password(
     user_id = claims["sub"]
     return await service.change_password(db, user_id, payload)
 
+
 @router.get(
         "/login-history", 
         response_model=LoginHistoryPage,
@@ -129,3 +137,13 @@ async def login_history(
 ):
     user_id = claims["sub"]
     return await service.login_history(db, user_id, page=page, page_size=page_size)
+
+
+@router.get(
+    "/verify",
+    description="Проверка валидности access-токена. Возвращает payload при успешной проверке.",
+)
+async def verify_token(
+    claims: dict = Depends(current_user_claims),
+):
+    return {"is_valid": True, "claims": claims}

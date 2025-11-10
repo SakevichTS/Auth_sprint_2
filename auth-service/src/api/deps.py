@@ -8,17 +8,22 @@ from src.domain.repositories.audit_repo import AuditRepository
 from src.domain.services.auth_service import AuthService
 from src.domain.services.role_service import RoleService
 
+
 def get_user_repo() -> UserRepository:
     return UserRepository()
+
 
 def get_role_repo() -> RoleRepository:
     return RoleRepository()
 
+
 def get_session_repo() -> SessionRepository: 
     return SessionRepository()
 
+
 def get_audit_repo() -> AuditRepository: 
     return AuditRepository()
+
 
 def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repo),
@@ -27,6 +32,7 @@ def get_auth_service(
     audit_repo: AuditRepository = Depends(get_audit_repo)
 ) -> AuthService:
     return AuthService(user_repo, role_repo, session_repo, audit_repo)
+
 
 def get_role_service(
     user_repo: UserRepository = Depends(get_user_repo),

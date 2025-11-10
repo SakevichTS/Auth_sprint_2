@@ -1,11 +1,13 @@
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse, JSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
 from contextlib import asynccontextmanager
 
 from api.v1 import films, persons, genres
 from core.config import settings
+from core.jaeger import configure_tracer, jaeger_settings
 from db import elastic, redis
 
 from pydantic import ValidationError
@@ -48,3 +50,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
 app.include_router(persons.router, prefix='/api/v1/persons', tags=['person'])
 app.include_router(genres.router, prefix='/api/v1/genres', tags=['genre'])
+
+# if jaeger_settings.debug:
+#     configure_tracer()
+#     FastAPIInstrumentor.instrument_app(app)

@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from services.person import PersonService, get_person_service
 from models.person import PersonDetail, PersonFilm, PersonsSearchResponse
 from models.film import SearchQuery
+from auth_service.dependencies import get_current_user
+from auth_service.http_client import UserPayload
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
@@ -19,6 +21,7 @@ router = APIRouter()
 async def search_persons(
     params: SearchQuery = Depends(),
     person_service: PersonService = Depends(get_person_service),
+    user: UserPayload = Depends(get_current_user),
 ):
     return await person_service.search(params)
 
@@ -30,6 +33,7 @@ async def search_persons(
 async def person_details(
     person_id: UUID,
     person_service: PersonService = Depends(get_person_service),
+    user: UserPayload = Depends(get_current_user),
 ) -> PersonDetail:
     person = await person_service.get_by_id(person_id)
     if not person:
@@ -44,7 +48,8 @@ async def person_details(
 )
 async def person_films(
     person_id: UUID,
-    person_service: PersonService = Depends(get_person_service)
+    person_service: PersonService = Depends(get_person_service),
+    user: UserPayload = Depends(get_current_user),
 ) -> list[PersonFilm]:
     films = await person_service.get_person_films(str(person_id))
     return films

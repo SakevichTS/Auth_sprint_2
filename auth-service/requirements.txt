@@ -8,6 +8,7 @@ uvicorn-worker==0.3.0
 sqlalchemy==2.0.32
 alembic==1.13.2
 psycopg==3.2.1
+psycopg2-binary>=2.9
 asyncpg==0.30.0
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2

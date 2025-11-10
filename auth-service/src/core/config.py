@@ -66,14 +66,11 @@ class AppSettings(BaseSettings):
 
 class JaegerSettings(BaseSettings):
     """Настройки Jaeger."""
-
-    host_name: str
-    port: int
-    service_name_auth: str
-    endpoint: str
-    debug: bool = False
-
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="JAEGER_")
+    host_name: str = Field(..., alias="JAEGER_HOST")
+    port: int = Field(..., alias="JAEGER_PORT")
+    service_name_auth: str = Field(..., alias="JAEGER_SERVICE_NAME_AUTH")
+    endpoint: str = Field(..., alias="JAEGER_ENDPOINT")
+    debug: bool = Field(False, alias="JAEGER_DEBUG")
 
     @property
     def dsn(self) -> str:

@@ -20,8 +20,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Копируем код сразу под appuser
 COPY --chown=appuser:appuser main.py ./main.py
 COPY --chown=appuser:appuser src/ ./src
+COPY --chown=appuser:appuser alembic.ini ./
+COPY --chown=appuser:appuser migrations/ ./migrations/
 
 USER appuser
 
 EXPOSE 8000
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn_worker.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+# CMD ["gunicorn", "-w", "4", "-k", "uvicorn_worker.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+CMD ["sh", "-c", "sleep 10 && alembic upgrade head && exec gunicorn -w 4 -k uvicorn_worker.UvicornWorker main:app --bind 0.0.0.0:8000"]

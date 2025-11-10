@@ -8,10 +8,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from core.logger import LOGGING
 
+
 class Resource(str, Enum):
     films = "films"
     genres = "genres"
     persons = "persons"
+
 
 class ElasticsearchSettings(BaseSettings):
     host: str = Field(..., validation_alias="ELASTIC_HOST")
@@ -30,14 +32,17 @@ class ElasticsearchSettings(BaseSettings):
         }
         return mapping[resource]
 
+
 class RedisSettings(BaseSettings):
     """Настройки для подключения к Redis."""
     host: str = Field(..., validation_alias='REDIS_HOST')
     port: int = Field(..., validation_alias='REDIS_PORT')
 
+
 class ProjectSettings(BaseSettings):
     """Текстовая информация о проекте"""
     name: str = Field(..., validation_alias='PROJECT_NAME')
+
 
 class AppSettings(BaseSettings):
     """Основной класс с настройками приложения."""
@@ -49,6 +54,30 @@ class AppSettings(BaseSettings):
     redis: RedisSettings = Field(default_factory=RedisSettings)
     es: ElasticsearchSettings = Field(default_factory=ElasticsearchSettings)
     pr: ProjectSettings = Field(default_factory=ProjectSettings)
+
+
+class Settings(BaseSettings):
+    redis_host: str
+    redis_port: int
+    elastic_host: str
+    elastic_port: int
+    auth_service_url: str
+
+    model_config = SettingsConfigDict(env_file=".env")
+
+
+class JaegerSettings(BaseSettings):
+    """Настройки Jaeger."""
+    host_name: str = Field(..., alias="JAEGER_HOST")
+    port: int = Field(..., alias="JAEGER_PORT")
+    service_name_auth: str = Field(..., alias="JAEGER_SERVICE_NAME_AUTH")
+    endpoint: str = Field(..., alias="JAEGER_ENDPOINT")
+    debug: bool = Field(False, alias="JAEGER_DEBUG")
+
+    @property
+    def dsn(self) -> str:
+        return f"http://{self.host_name}:{self.port}/{self.endpoint}"
+
 
 try:
     settings = AppSettings()
