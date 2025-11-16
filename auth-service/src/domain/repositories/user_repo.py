@@ -6,6 +6,7 @@ from src.models.orm import User, Role
 
 from typing import Iterable
 
+
 class UserRepository:
     async def get_by_id(self, db: AsyncSession, user_id: str) -> User | None:
         return await db.scalar(select(User).where(User.id == user_id))

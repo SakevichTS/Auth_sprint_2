@@ -25,14 +25,15 @@ def upgrade():
 
     op.execute("""
         CREATE TABLE login_audit (
-            id UUID PRIMARY KEY,
-            user_id UUID REFERENCES users(id) ON DELETE SET NULL,
-            ts TIMESTAMPTZ NOT NULL,
-            ip_address VARCHAR(64),
-            user_agent VARCHAR(255),
-            result login_result NOT NULL,
-            reason VARCHAR(255)
-        ) PARTITION BY RANGE (ts);
+        id UUID NOT NULL,
+        user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        ts TIMESTAMPTZ NOT NULL,
+        ip_address VARCHAR(64),
+        user_agent VARCHAR(255),
+        result login_result NOT NULL,
+        reason VARCHAR(255),
+        PRIMARY KEY (id, ts)
+    ) PARTITION BY RANGE (ts);
     """)
 
     op.create_index('ix_login_audit_user_ts', 'login_audit', ['user_id', 'ts'], unique=False)

@@ -85,6 +85,42 @@ class JaegerSettings(BaseSettings):
         return f"http://{self.host_name}:{self.port}/{self.endpoint}"
 
 
+class YandexSettings(BaseSettings):
+    """Настройки Yandex."""
+    client_id: str
+    client_secret: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
+    token_url: str
+    user_info_url: str
+    revoke_token_url: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="YANDEX_")
+
+    def auth_url_login(self) -> str:
+        return f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_login}"
+
+    def auth_url_logout(self) -> str:
+        return f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_logout}"
+
+
+class VkSettings(BaseSettings):
+    """Настройки VK."""
+    client_id: str
+    client_secret: str
+    code_challenge_method: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
+    token_url: str
+    user_info_url: str
+    logout_url: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="VK_")
+
+    def auth_url(self) -> str:
+        return f"https://oauth.vk.com/authorize?client_id={self.client_id}&display=page&redirect_uri={self.redirect_uri_login}&response_type=code&scope=email"
+
+
 try:
     settings = AppSettings()
 except Exception as e:

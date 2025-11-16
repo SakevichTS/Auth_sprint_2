@@ -21,6 +21,7 @@ from src.models.orm.audit import LoginResult
 
 from typing import Iterable
 
+
 class AuthService:
     def __init__(self, user_repo: UserRepository, role_repo: RoleRepository, session_repo: SessionRepository, audit_repo: AuditRepository):
         self.user_repo = user_repo

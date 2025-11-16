@@ -4,7 +4,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from redis.asyncio import Redis
 from contextlib import asynccontextmanager
 
-from src.api.v1 import auth, roles
+from src.api.v1 import auth, auth_social, roles
 from src.core.config import settings
 from src.core.jaeger import configure_tracer, jaeger_settings
 from src.core.ratelimit import check_login_ratelimit
@@ -48,6 +48,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
     )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(auth_social.router, prefix="/auth-social", tags=["social"])
 app.include_router(roles.router, prefix="/roles", tags=["roles"])
 
 if jaeger_settings.debug:
