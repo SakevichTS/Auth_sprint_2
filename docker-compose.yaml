@@ -5,8 +5,6 @@ services:
     build:
       context: ./movies-service/src
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
     networks:
       - app-net
     depends_on:
@@ -137,8 +135,6 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
     networks:
       - app-net
     depends_on:
@@ -163,8 +159,6 @@ services:
       - ./db/database_dump_auth.sql:/docker-entrypoint-initdb.d/init.sql
     expose:
       - "5433"
-    ports:
-      - "5433:5432"
     networks:
       - app-net
     env_file:
