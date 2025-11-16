@@ -14,6 +14,9 @@ def _keys_for_login(ip: str | None, login: str) -> list[str]:
 
 async def check_login_ratelimit(ip: str | None, login: str) -> None:
     """Поднимаем 429, если порог превышен по ЛЮБОМУ ключу (ip или login)."""
+    if not settings.ratelimit_enabled:
+        return
+
     keys = _keys_for_login(ip, login)
     values = await redis.redis.mget(keys)  # ["3", None] и т.п.
     max_val = max((int(v) for v in values if v is not None), default=0)
@@ -26,6 +29,9 @@ async def check_login_ratelimit(ip: str | None, login: str) -> None:
 
 async def bump_login_fail_counter(ip: str | None, login: str) -> None:
     """INCR + EXPIRE только если счётчик новый."""
+    if not settings.ratelimit_enabled:
+        return
+
     keys = _keys_for_login(ip, login)
     pipe = redis.redis.pipeline()
     for k in keys:
@@ -35,5 +41,8 @@ async def bump_login_fail_counter(ip: str | None, login: str) -> None:
 
 
 async def reset_login_counters(ip: str | None, login: str) -> None:
+    if not settings.ratelimit_enabled:
+        return
+
     keys = _keys_for_login(ip, login)
     await redis.redis.delete(*keys)

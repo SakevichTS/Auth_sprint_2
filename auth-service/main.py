@@ -37,18 +37,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-#
-# @app.middleware("http")
-# async def login_ratelimit_middleware(request: Request, call_next):
-#     if request.url.path == "/auth/login" and request.method == "POST":
-#         form = await request.form()
-#         login = form.get("login")
-#         ip = request.client.host
-#         await check_login_ratelimit(ip, login)
-#
-#     response = await call_next(request)
-#     return response
-
 
 # Обработчик  ошибок Pydantic
 @app.exception_handler(ValidationError)

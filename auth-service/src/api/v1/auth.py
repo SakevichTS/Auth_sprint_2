@@ -52,7 +52,6 @@ async def login(
         tokens = await service.login(db, payload, request)
     except Exception as e:
         import traceback
-        print("⚠️ Ошибка при логине:", e)
         traceback.print_exc()
         await bump_login_fail_counter(ip, login)
         raise HTTPException(status_code=500, detail=str(e))
