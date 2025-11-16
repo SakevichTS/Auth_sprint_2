@@ -8,10 +8,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.core.logger import LOGGING
 
+
 class RedisSettings(BaseSettings):
     """Настройки для подключения к Redis."""
     host: str = Field(..., validation_alias='REDIS_HOST')
     port: int = Field(..., validation_alias='REDIS_PORT')
+
 
 class PostgresSettings(BaseSettings):
     """Настройки для подключения к Postgres."""
@@ -28,6 +30,7 @@ class PostgresSettings(BaseSettings):
         opts = f"?options={self.options}" if self.options else ""
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}{opts}"
 
+
 class JwtSettings(BaseSettings):
     secret: str = Field(..., validation_alias="JWT_SECRET")
     algorithm: str = "HS256"
@@ -36,18 +39,23 @@ class JwtSettings(BaseSettings):
     access_ttl_min: int = Field(15, validation_alias="ACCESS_TTL_MIN")
     refresh_ttl_days: int = Field(14, validation_alias="REFRESH_TTL_DAYS")
 
+
 class RateLimitSettings(BaseSettings):
+    ratelimit_enabled: bool = Field(True, validation_alias="RATELIMIT_ENABLED")
     login_max_attempts: int = Field(5, validation_alias="RL_LOGIN_MAX_ATTEMPTS")
     login_window_sec: int = Field(300, validation_alias="RL_LOGIN_WINDOW_SEC")  # 5 минут
     roles_cache_ttl_sec: int = Field(600, validation_alias="ROLES_CACHE_TTL_SEC")  # 10 минут
+
 
 class ProjectSettings(BaseSettings):
     """Текстовая информация о проекте"""
     name: str = Field(..., validation_alias='PROJECT_NAME')
 
+
 class AlchemySettings(BaseSettings):
     """Настройки для Alchemy"""
     echo_engine: bool = Field(False, validation_alias='ECHO_ENGINE')
+
 
 class AppSettings(BaseSettings):
     """Основной класс с настройками приложения."""
@@ -75,6 +83,42 @@ class JaegerSettings(BaseSettings):
     @property
     def dsn(self) -> str:
         return f"http://{self.host_name}:{self.port}/{self.endpoint}"
+
+
+class YandexSettings(BaseSettings):
+    """Настройки Yandex."""
+    client_id: str
+    client_secret: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
+    token_url: str
+    user_info_url: str
+    revoke_token_url: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="YANDEX_")
+
+    def auth_url_login(self) -> str:
+        return f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_login}"
+
+    def auth_url_logout(self) -> str:
+        return f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_logout}"
+
+
+class VkSettings(BaseSettings):
+    """Настройки VK."""
+    client_id: str
+    client_secret: str
+    code_challenge_method: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
+    token_url: str
+    user_info_url: str
+    logout_url: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="VK_")
+
+    def auth_url(self) -> str:
+        return f"https://oauth.vk.com/authorize?client_id={self.client_id}&display=page&redirect_uri={self.redirect_uri_login}&response_type=code&scope=email"
 
 
 try:

@@ -6,14 +6,18 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from src.core.config import settings
 from fastapi import HTTPException, status
 
+
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
+
 
 def make_jti() -> str:
     return str(uuid.uuid4())
 
+
 def sha256_hex(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 def create_access_token(sub: str, roles: list[str]) -> tuple[str, int]:
     exp = now_utc() + timedelta(minutes=settings.jwt.access_ttl_min)
@@ -30,6 +34,7 @@ def create_access_token(sub: str, roles: list[str]) -> tuple[str, int]:
     ttl = int((exp - now_utc()).total_seconds())
     return token, ttl
 
+
 def create_refresh_token(sub: str) -> tuple[str, datetime]:
     exp = now_utc() + timedelta(days=settings.jwt.refresh_ttl_days)
     payload = {
@@ -43,6 +48,7 @@ def create_refresh_token(sub: str) -> tuple[str, datetime]:
     }
     token = jwt.encode(payload, settings.jwt.secret, algorithm=settings.jwt.algorithm)
     return token, exp
+
 
 def decode_refresh(token: str) -> dict:
     try:
